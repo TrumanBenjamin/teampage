@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/team.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans+Condensed:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="team-body">
+  <header class="team-header">
+    <h1>Meet the Team</h1>
+    <p>Meet the people who make it happen! We are devoted to being the best that we can be in our craft...</p>
+  </header>
+
+  <main class="team-grid">
+    <% team.forEach(member => { %>
+      <div class="team-card">
+        <div class="photo-wrap">
+          <img src="<%= member.photo_url || 'https://placehold.co/400x400?text=No+Photo' %>" alt="<%= member.name %>">
+        </div>
+        <div class="info">
+          <h2><%= member.name %></h2>
+          <p><%= member.title %></p>
+          <% if (member.hired_at) { %>
+            <span class="hired">Hired: <%= new Date(member.hired_at).getFullYear() %></span>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+</body>
+</html>
