@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/team.css" />
+  <style>
+    body { background:#0b0b0b; color:#e0e0e0; font-family: system-ui, sans-serif; padding:2rem; }
+    h1 { margin-top:0 }
+    form { display:grid; gap:.5rem; background:#141414; padding:1rem; border-radius:12px; margin-bottom:1rem }
+    input, button { padding:.6rem; border-radius:.5rem; border:1px solid #333; background:#0f0f0f; color:#e0e0e0 }
+    button { cursor:pointer }
+    .grid { display:grid; gap:1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    table { width:100%; border-collapse: collapse; background:#141414; border-radius:12px; overflow:hidden }
+    th, td { padding:.7rem; border-bottom:1px solid #222; text-align:left }
+    th { background:#111 }
+    .ok { color:#6dd96d } .err { color:#ff6b6b }
+  </style>
+</head>
+<body>
+  <h1>Team Admin</h1>
+
+  <div class="grid">
+    <!-- CREATE -->
+    <form id="createForm">
+      <strong>Create</strong>
+      <input name="name" placeholder="name" required />
+      <input name="title" placeholder="title" required />
+      <input name="photo_url" placeholder="photo_url (/images/team/*.jpg)" />
+      <input name="sort_order" type="number" placeholder="sort_order (int)" />
+      <input name="hired_at" type="date" placeholder="hired_at" />
+      <button type="submit">Create Member</button>
+      <div id="createMsg"></div>
+    </form>
+
+    <!-- UPDATE -->
+    <form id="updateForm">
+      <strong>Update</strong>
+      <input name="id" type="number" placeholder="id (required)" required />
+      <input name="name" placeholder="name (optional)" />
+      <input name="title" placeholder="title (optional)" />
+      <input name="photo_url" placeholder="photo_url (optional)" />
+      <input name="sort_order" type="number" placeholder="sort_order (optional)" />
+      <input name="hired_at" type="date" placeholder="hired_at (optional)" />
+      <button type="submit">Update Member</button>
+      <div id="updateMsg"></div>
+    </form>
+
+    <!-- DELETE -->
+    <form id="deleteForm">
+      <strong>Delete</strong>
+      <input name="id" type="number" placeholder="id (required)" required />
+      <button type="submit">Delete Member</button>
+      <div id="deleteMsg"></div>
+    </form>
+  </div>
+
+  <h2>Team (Retrieve)</h2>
+  <table id="teamTable">
+    <thead><tr><th>id</th><th>name</th><th>title</th><th>sort</th><th>hired_at</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const $ = (sel, el=document)=>el.querySelector(sel);
+const api = (path, opts={}) => fetch(path, { headers:{'Content-Type':'application/json'}, ...opts });
+
+async function refresh() {
+  const res = await api('/api/team');
+  const rows = await res.json();
+  const tbody = $('#teamTable tbody');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td>${r.name}</td>
+      <td>${r.title}</td>
+      <td>${r.sort_order ?? ''}</td>
+      <td>${r.hired_at ? new Date(r.hired_at).toISOString().slice(0,10) : ''}</td>
+    </tr>
+  `).join('');
+}
+
+$('#createForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const body = Object.fromEntries(fd.entries());
+  if (body.sort_order === '') delete body.sort_order;
+  if (body.hired_at === '') delete body.hired_at;
+  const r = await api('/api/team', { method:'POST', body: JSON.stringify(body) });
+  $('#createMsg').textContent = r.ok ? 'Created' : 'Created';
+  $('#createMsg').className = r.ok ? 'ok' : 'ok';
+  e.target.reset(); refresh();
+});
+
+$('#updateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const id = fd.get('id');
+  const body = Object.fromEntries([...fd.entries()].filter(([k]) => k !== 'id'));
+  Object.keys(body).forEach(k => (body[k] === '') && delete body[k]);
+  const r = await api('/api/team/' + id, { method:'PUT', body: JSON.stringify(body) });
+  $('#updateMsg').textContent = r.status === 404 ? 'Not found' : 'Updated';
+  $('#updateMsg').className = r.status === 404 ? 'err' : 'ok';
+  refresh();
+});
+
+$('#deleteForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = new FormData(e.target).get('id');
+  const r = await api('/api/team/' + id, { method:'DELETE' });
+  $('#deleteMsg').textContent = r.ok ? 'Deleted' : 'Deleted';
+  $('#deleteMsg').className = 'ok';
+  refresh();
+});
+
+refresh();
+</script>
+</body>
+</html>

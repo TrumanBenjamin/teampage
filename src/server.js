@@ -13,14 +13,18 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Friendly root
+// Landing page
 app.get('/', (_req, res) => {
   res.send(`
-    <h1>HHR Team SQL Module</h1>
-    <p>Server is running.</p>
-    <ul>
-      <li><a href="/api/team">GET /api/team</a> – list team</li>
-    </ul>
+    <body style="background: #0b0b0b; color:#e0e0e0; font-size: 20px">
+      <h1>Team SQL Module</h1>
+      <p>Server is running.</p>
+      <ul>
+        <li><a href="/api/team">GET /api/team</a> – list team</li>
+        <li><a href="/teamview">GET /teamview</a> – frontend view</li>
+        <li><a href="/teamadmin">GET /teamadmin</a> – admin view</li>
+      </ul>
+    </body>  
   `);
 });
 
@@ -122,6 +126,9 @@ app.get('/teamview', async (_req, res, next) => {
     next(err);
   }
 });
+
+// Team admin
+app.get('/teamadmin', (_req, res) => res.render('team-admin', { title: 'Team Admin' }));
 
 // Error handler
 app.use((err, _req, res, _next) => {
